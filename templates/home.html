@@ -1,0 +1,132 @@
+{% extends "base.html" %} {% block title %} {%if myitems == False%}Home{%else%}My Items{%endif%}{% endblock %} 
+{% block content %}
+    <!-- HTML Body content here -->
+
+   
+
+    <div class ="row p-2 d-flex justify-content-center">
+        <!-- search bar -->
+        <form class="col-sm-8 p-2 d-flex justify-content-center" method="POST">
+            <div class="input-group rounded">   
+                <input type="search" class="form-control rounded" placeholder="Search" aria-label="Search" name="search" value="{%if search != ''%}{{search}}{%endif%}"
+                  aria-describedby="search-addon" />
+                <button class="input-group-text border-0" type="submit" >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                      </svg>
+                    </button>
+              </div>
+            </form>
+    
+        <!-- sort by drop down -->
+        <div class="col-xs-2 p-2">
+            <div class="dropstart">
+                <button class="btn btn-secondary dropdown-toggle btn-info" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Sort By
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item {%if sortby=='newest'%} active {%endif%}" {%if myitems == False%}href="{{url_for('app.index', sortby='newest', search=search)}}"{%else%}href="{{url_for('app.userItems', sortby='newest', search=search)}}"{%endif%}>Newest Arrival</a>
+                    <a class="dropdown-item {%if sortby=='priceDesc'%} active {%endif%}" {%if myitems == False%}href="{{url_for('app.index', sortby='priceDesc', search=search)}}"{%else%}href="{{url_for('app.userItems', sortby='priceDesc', search=search)}}"{%endif%}>Price: High to low</a>
+                    <a class="dropdown-item {%if sortby=='priceAsc'%} active {%endif%}" {%if myitems == False%}href="{{url_for('app.index', sortby='priceAsc', search=search)}}"{%else%}href="{{url_for('app.userItems', sortby='priceAsc', search=search)}}"{%endif%}>Price: Low to High</a>
+                    <a class="dropdown-item {%if sortby=='alphaAZ'%} active {%endif%}" {%if myitems == False%}href="{{url_for('app.index', sortby='alphaAZ', search=search)}}"{%else%}href="{{url_for('app.userItems', sortby='alphaAZ', search=search)}}"{%endif%}>Alphabetical: A-Z</a>
+                    <a class="dropdown-item {%if sortby=='alphaZA'%} active {%endif%}" {%if myitems == False%}href="{{url_for('app.index', sortby='alphaZA', search=search)}}"{%else%}href="{{url_for('app.userItems', sortby='alphaZA', search=search)}}"{%endif%}>Alphabetical: Z-A</a>
+                </div>
+              </div>
+        </div>
+        <!-- upload item button -->
+        <div class="col-xs-1 p-2">
+            <a class="btn btn-secondary btn-success" role="button" id="uploadItem" href="{{ url_for('app.itemPost') }}">+</a>
+        </div>
+        
+    <style>
+.button {
+    z-index: 5;
+    position:absolute;
+    top:8px;
+    right: 8px;}
+</style>
+
+    </div>
+    <!-- products on display-->
+    <div class="row p-2"> 
+        {% for product in productsDict %}
+        <div class="col-md-4">
+            <div class="card mb-4 box-shadow">
+              <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
+                <div class="carousel-inner">
+                    <!-- displays all images for a product -->
+                    {%if user.UserId == product['SellerID'] or user.UserId==1 %}
+                          {%if product['isSold'] == False%}
+                          <a role="button" href="{{url_for('app.editPost', PID=product['PID'])}}" class="btn btn-secondary btn-sm button">Edit</a>
+                            {%else%}
+                            <button type="button" class="btn btn-danger btn-sm button disabled">SOLD</button>
+                          {%endif%}
+                        {%endif%}
+
+                    <!-- if img errors while opening -->
+                    {%if url_for('app.get_img', id=product['PID']) == null%}
+                    <div class="carousel-item active">
+                        <img class="d-block w-100" src="{{url_for('static', filename='logo.png')}}" alt="logo">
+                        </div>
+                    <!--img opens correct'y  -->
+                    {%else%}
+                    <div class="carousel-item active">
+                        <img class="d-block w-100" src="{{url_for('app.get_img',id=product['PID']) }}">    
+                           <!--edit or sold button-->
+                        
+                    </div>
+                    {%endif%}
+                </div>
+
+                <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Previous</span>
+                </a>
+                <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Next</span>
+                </a>
+                </div>
+                <!-- product info -->
+              <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center">
+                      <!-- product name & price -->
+                <h5 class="card-text">{{ product['Name'] }}</h5>
+                <h5 class="card-text">${{ product['Price']|round|int }}</h5>
+            </div>
+                   <!-- product description -->
+                <p class="card-text">{{ product['Description'] }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                  {%if myitems == False%}
+                  <div class="btn-group">
+                    <button type="button" onClick="addCartItem({{ product['PID'] }})" class="btn btn-sm btn-outline-success">Add to Cart</button>
+                  </div>
+                  {%endif%}
+                   <!-- product time since posted -->
+                  <small class="text-muted">{#now - product.DateAdded #}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+        {%if productsDict|length == 0 %}
+            <h4 class="col-sm-12 text-center"><small>No items found.</small></h4>
+        {%endif%}
+      </div>
+
+      <script>
+        function addCartItem(PID) {
+                      fetch("/add-item", {
+                        method: "POST",
+                        body: JSON.stringify({ PID: PID }),
+                      }).then((_res) => {
+                        
+                        window.location.href = "/{{sortby}}/{{search}}";
+                      });
+                    }
+      
+      </script>
+   
+    {% endblock %}
+
+    
